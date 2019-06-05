@@ -14,7 +14,7 @@ const REGEX = /.+?:(\d+) \[(W|E)] (\w+): (.+)/g;
 
 export default class Linter {
   private collection: DiagnosticCollection = languages.createDiagnosticCollection(
-    "haml-lint"
+    "vscode-epmlint"
   );
   private processes: WeakMap<
     TextDocument,
@@ -32,7 +32,7 @@ export default class Linter {
    * run
    */
   public run(document: TextDocument) {
-    if (document.languageId !== "haml") {
+    if (document.languageId !== "epm") {
       return;
     }
 
@@ -60,7 +60,7 @@ export default class Linter {
       return;
     }
 
-    const executablePath = workspace.getConfiguration("hamlLint")
+    const executablePath = workspace.getConfiguration("epmlint", null)
       .executablePath;
     const [command, ...args] = executablePath.split(/\s+/);
     const process = execa(command, [...args, document.uri.fsPath], {
@@ -94,7 +94,6 @@ export default class Linter {
         match[2] === "W"
           ? DiagnosticSeverity.Warning
           : DiagnosticSeverity.Error;
-      // NOTE: https://github.com/aki77/vscode-haml-lint/issues/1
       const line = Math.max(Number.parseInt(match[1], 10) - 1, 0);
       const ruleName = match[3];
       const message = match[4];

@@ -1,10 +1,9 @@
 {
-  "name": "haml-lint",
-  "displayName": "Haml Lint",
-  "description": "Haml Lint for Visual Studio Code",
-  "version": "0.0.3",
-  "publisher": "aki77",
-  "icon": "images/icon.png",
+  "name": "vscode-epmlint",
+  "displayName": "Epmlint",
+  "description": "Epmlint for Visual Studio Code",
+  "version": "0.0.1",
+  "publisher": "smhc",
   "engines": {
     "vscode": "^1.25.0"
   },
@@ -13,25 +12,22 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/aki77/vscode-haml-lint.git"
-  },
-  "bugs": {
-    "url": "https://github.com/aki77/vscode-haml-lint/issues"
+    "url": "https://github.com/smhc/vscode-epmlint.git"
   },
   "license": "MIT",
   "activationEvents": [
-    "onLanguage:haml"
+    "onLanguage:epm"
   ],
   "main": "./out/extension",
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Haml Lint Configuration",
+      "title": "Epmlint Configuration",
       "properties": {
-        "hamlLint.executablePath": {
+        "epmlint.executablePath": {
           "type": "string",
-          "default": "haml-lint",
-          "description": "Path to haml-lint executable"
+          "default": "epmlint",
+          "description": "Path to epmlint executable"
         }
       }
     }
