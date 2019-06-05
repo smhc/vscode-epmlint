@@ -1,7 +1,7 @@
 {
   "name": "vscode-epmlint",
-  "displayName": "Epmlint",
-  "description": "Epmlint for Visual Studio Code",
+  "displayName": "vscode-epmlint",
+  "description": "vscode-epmlint for Visual Studio Code",
   "version": "0.0.1",
   "publisher": "smhc",
   "engines": {
@@ -22,7 +22,7 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Epmlint Configuration",
+      "title": "vscode-epmlint Configuration",
       "properties": {
         "epmlint.executablePath": {
           "type": "string",

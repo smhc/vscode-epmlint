@@ -1,6 +1,6 @@
-# Haml Lint
+# vscode-epmlint
 
-EpmLint for Visual Studio Code.
+vscode-epmlint for Visual Studio Code.
 
 ## Requirements
 
