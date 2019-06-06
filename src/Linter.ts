@@ -10,7 +10,7 @@ import {
   Position
 } from "vscode";
 
-const REGEX = /.+?:(\d+) \[(W|E)] (\w+): (.+)/g;
+const REGEX = /\[(ERROR|WARN)\] (.*):(\d+):(\d+):(.*)\[(.*)\]/g;
 
 export default class Linter {
   private collection: DiagnosticCollection = languages.createDiagnosticCollection(
@@ -49,6 +49,7 @@ export default class Linter {
   }
 
   private async lint(document: TextDocument) {
+
     const text = document.getText();
     const oldProcess = this.processes.get(document);
     if (oldProcess) {
@@ -91,18 +92,19 @@ export default class Linter {
     let match = REGEX.exec(output);
     while (match !== null) {
       const severity =
-        match[2] === "W"
+        match[1] === "WARN"
           ? DiagnosticSeverity.Warning
           : DiagnosticSeverity.Error;
-      const line = Math.max(Number.parseInt(match[1], 10) - 1, 0);
-      const ruleName = match[3];
-      const message = match[4];
+      const line = Math.max(Number.parseInt(match[3], 10) - 1, 0);
+      const col = Math.max(Number.parseInt(match[4], 10) - 1, 0);
+      const ruleName = match[6];
+      const message = match[5];
       const lineText = document.lineAt(line);
       const lineTextRange = lineText.range;
       const range = new Range(
         new Position(
           lineTextRange.start.line,
-          lineText.firstNonWhitespaceCharacterIndex
+          col > 0 ? col : lineText.firstNonWhitespaceCharacterIndex
         ),
         lineTextRange.end
       );
