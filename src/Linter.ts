@@ -50,22 +50,17 @@ export default class Linter {
 
   private async lint(document: TextDocument) {
 
-    const text = document.getText();
     const oldProcess = this.processes.get(document);
     if (oldProcess) {
       oldProcess.kill();
     }
 
-    const workspaceFolder = workspace.getWorkspaceFolder(document.uri);
-    if (!workspaceFolder) {
-      return;
-    }
-
+    const text = document.getText();
     const executablePath = workspace.getConfiguration("epmlint", null)
       .executablePath;
     const [command, ...args] = executablePath.split(/\s+/);
-    const process = execa(command, [...args, document.uri.fsPath], {
-      cwd: workspaceFolder.uri.fsPath,
+    const process = execa(command, [...args, '-'], {
+      input: text,
       reject: false
     });
 
