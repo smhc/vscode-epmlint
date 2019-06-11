@@ -1,4 +1,5 @@
-import * as execa from "execa";
+import * as cp from "child_process";
+
 import {
   Diagnostic,
   DiagnosticCollection,
@@ -10,7 +11,7 @@ import {
   Position
 } from "vscode";
 
-const REGEX = /\[(ERROR|WARN)\] (.*):(\d+):(\d+):(.*)\[(.*)\]/g;
+const REGEX = /\[(ERROR|WARN)\] (.*):(\d+):(\d+): (.*) \[(.*)\]/g;
 
 export default class Linter {
   private collection: DiagnosticCollection = languages.createDiagnosticCollection(
@@ -18,7 +19,7 @@ export default class Linter {
   );
   private processes: WeakMap<
     TextDocument,
-    execa.ExecaChildProcess
+    cp.ChildProcess
   > = new WeakMap();
 
   /**
@@ -48,7 +49,7 @@ export default class Linter {
     }
   }
 
-  private async lint(document: TextDocument) {
+  private lint(document: TextDocument) {
 
     const oldProcess = this.processes.get(document);
     if (oldProcess) {
@@ -56,29 +57,29 @@ export default class Linter {
     }
 
     const text = document.getText();
-    const executablePath = workspace.getConfiguration("epmlint", null)
-      .executablePath;
+    let exitCode = 0;
+    const executablePath = workspace.getConfiguration("epmlint").executablePath;
     const [command, ...args] = executablePath.split(/\s+/);
-    const process = execa(command, [...args, '-'], {
-      input: text,
-      reject: false
+    let process = cp.execFile(command, [...args, '-'], (error, stdout) => {
+      this.processes.delete(document);
+      if (text !== document.getText()) {
+        return;
+      }
+      this.collection.delete(document.uri);
+      if (exitCode !== 1) {
+        // Command must fail with an exit code of 1
+        // Do not process stdout if command was successful or killed with a signal
+        return;
+      }
+      this.collection.set(document.uri, this.parse(stdout, document));
     });
-
-    this.processes.set(document, process);
-    const { code, stdout } = await process;
-    this.processes.delete(document);
-
-    // NOTE: The file was modified since the request was sent to check it.
-    if (text !== document.getText()) {
-      return;
+    if (process) {
+      this.processes.set(document, process);
+      process.once('exit', (code, signal) => {
+        exitCode = signal === null ? code : -1;
+      });
+      process.stdin.end(text);
     }
-
-    this.collection.delete(document.uri);
-    if (code === 0) {
-      return;
-    }
-
-    this.collection.set(document.uri, this.parse(stdout, document));
   }
 
   private parse(output: string, document: TextDocument): Diagnostic[] {
@@ -92,7 +93,7 @@ export default class Linter {
           : DiagnosticSeverity.Error;
       const line = Math.max(Number.parseInt(match[3], 10) - 1, 0);
       const col = Math.max(Number.parseInt(match[4], 10) - 1, 0);
-      const ruleName = match[6];
+      // const ruleName = match[6];
       const message = match[5];
       const lineText = document.lineAt(line);
       const lineTextRange = lineText.range;
@@ -105,11 +106,10 @@ export default class Linter {
       );
 
       diagnostics.push(
-        new Diagnostic(range, `${ruleName}: ${message}`, severity)
+        new Diagnostic(range, message, severity)
       );
       match = REGEX.exec(output);
     }
-
     return diagnostics;
   }
 }

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as vscode from "vscode";
 import Linter from "./Linter";
 import { debounce } from 'ts-debounce';
